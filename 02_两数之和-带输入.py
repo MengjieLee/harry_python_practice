@@ -15,7 +15,7 @@ y = list('三' '枪' '刀' )
 
 a= int(input(f"请输入第一个数字:"))
 
-if a==60:
+if a==1:
     print(random.choice(z))
 else:
     print(random.choice(y))
