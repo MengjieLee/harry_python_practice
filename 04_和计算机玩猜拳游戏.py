@@ -2,7 +2,6 @@
 
 """
 import random
-print(f"计算机出的手势为: {random.choice(["剪刀", "石头", "步"])}")
 """
 import random
 

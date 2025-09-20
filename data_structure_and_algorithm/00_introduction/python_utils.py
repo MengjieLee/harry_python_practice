@@ -21,3 +21,15 @@ def read_func(q):
     while True:
         value = q.get(True)
         print(f'Get {value} from queue')
+
+
+
+"""
+x = 5
+
+for i in range(1, x + 1):
+    a = " " * (x - i)
+    b = "*" * (2 * i - 1)
+    print(a + b)
+
+"""

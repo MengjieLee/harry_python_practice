@@ -1,15 +1,22 @@
-def solution_from_harry(w1, w2):
-    # 思路：
-    # - 所有字符都相等，返回 True
-    # - 但凡有一个字符不相等，立即返回 False
-    for i in w1:
-        found = False
-        for j in w2:
-            if i == j:
+def funk(wooo1, wooo2) -> bool:
+    found = True
+    for w1 in wooo1:
+        for w2 in wooo2:
+            if w1 == w2:
                 found = True
                 break
-        if not found:
-            return False    
+            else:
+                found = False
+        break
     return found
-        
-print(solution_from_harry('python', 'typhon是'))
+
+
+
+
+# word1 = "typhon"
+# word2 = "python"
+# result = funk(word1, word2)
+# print(result)
+assert funk("xyphon", "python")is False
+assert funk("god", "dog")is True
+print("✅")

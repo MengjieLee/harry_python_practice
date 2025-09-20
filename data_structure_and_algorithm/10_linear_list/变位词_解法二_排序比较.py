@@ -2,24 +2,21 @@
 将两字符串都按照字母顺序排序
     - 逐字符比较是否相同，如果对比到最后都相同，则是变位词
     - 如果发生有一个字符没有找到，则两个词不是变位词
+
+    is_anagram
 """
 def func(word1: str, word2: str) -> bool:
     is_anagram = True
 
-    word1_list, word2_list = list(word1), list(word2)
+    # TODO 代码逻辑写在这里
+    sorted_word1 = sorted()
+    sorted_word2 = sorted()
 
-    word1_list.sort()
-    word2_list.sort()
-
-    p = 0
-
-    while p < len(word1) and is_anagram:
-        if word1_list[p] == word2_list[p]:
-            p += 1
-        else:
+    for i in range(len(sorted_word1)):
+        if sorted_word1[i] == sorted_word2[i]:
             is_anagram = False
-
-    return is_anagram
+            break
+        return is_anagram
 
 
 assert func('xython', 'typhon') is False
