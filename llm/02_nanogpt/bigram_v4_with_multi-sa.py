@@ -1,15 +1,15 @@
 '''
-/bigram_v3_with_single-sa.py
-step(0): train loss 6.3034, val loss 6.3264
-step(500): train loss 3.1879, val loss 6.1680
-step(1000): train loss 1.7551, val loss 7.9221
-step(1500): train loss 1.3692, val loss 9.1620
-step(2000): train loss 1.1930, val loss 10.1094
-step(2500): train loss 1.0946, val loss 10.6318
-step(3000): train loss 1.0299, val loss 11.1991
-step(3500): train loss 0.9583, val loss 11.5353
-step(4000): train loss 0.9111, val loss 11.9693
-step(4500): train loss 0.8602, val loss 12.2770
+/bigram_v4_with_multi-sa.py
+step(0): train loss 6.2797, val loss 6.2853
+step(500): train loss 3.1104, val loss 6.1282
+step(1000): train loss 1.5849, val loss 7.8002
+step(1500): train loss 0.9697, val loss 9.2822
+step(2000): train loss 0.6858, val loss 10.6193
+step(2500): train loss 0.5540, val loss 11.4536
+step(3000): train loss 0.4792, val loss 12.2816
+step(3500): train loss 0.4298, val loss 12.8214
+step(4000): train loss 0.4048, val loss 13.2234
+step(4500): train loss 0.3809, val loss 13.5654
 '''
 
 from pyexpat import model
@@ -98,13 +98,24 @@ class Head(nn.Module):
         return out
 
 
+class MultiHeadAttention(nn.Module):
+    ''' Multiple heads of self-attention in parallel '''
+
+    def __init__(self, num_heads, head_size):
+        super().__init__()
+        self.heads = nn.ModuleList((Head(head_size) for _ in range(num_heads)))
+
+    def forward(self, x):
+        return torch.cat([h(x) for h in self.heads], dim=-1) # 高维拼接：把多个注意力头的输出沿特征维度拼接
+
+
 # ======== 简易版 bigram 模型 ========
 class BigramLanguageModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.sa_head = Head(n_embd)
+        self.sa_head = MultiHeadAttention(4, n_embd // 4) # i.e. 4 heads of 8-dimensional self-attention
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
@@ -112,7 +123,7 @@ class BigramLanguageModel(nn.Module):
         tok_embd = self.token_embedding_table(idx) # (B, T, embedding_c)
         pos_embd = self.position_embedding_table(torch.arange(T, device=device)) # (T, embedding_c)
         x = tok_embd + pos_embd # (B, T, embedding_c)
-        x = self.sa_head(x) # apply one head of self-attention, (B, T, C)
+        x = self.sa_head(x) # apply multiple heads of self-attention, (B, T, C)
         logits = self.lm_head(x) # # (B, T, vocab_size)
         if targets is None:
             loss = None
