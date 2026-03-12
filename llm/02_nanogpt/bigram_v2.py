@@ -1,15 +1,15 @@
 '''
-/bigram.py
-step(0): train loss 6.8029, val loss 6.8265
-step(300): train loss 3.8293, val loss 5.8151
-step(600): train loss 2.2778, val loss 5.5810
-step(900): train loss 1.7072, val loss 5.7449
-step(1200): train loss 1.5092, val loss 5.9742
-step(1500): train loss 1.4294, val loss 6.1400
-step(1800): train loss 1.3803, val loss 6.3173
-step(2100): train loss 1.3697, val loss 6.3679
-step(2400): train loss 1.3614, val loss 6.4842
-step(2700): train loss 1.3542, val loss 6.5674
+/bigram_v2.py
+step(0): train loss 6.3928, val loss 6.3631
+step(300): train loss 1.4620, val loss 7.3354
+step(600): train loss 1.4322, val loss 7.6983
+step(900): train loss 1.4204, val loss 7.8798
+step(1200): train loss 1.4189, val loss 7.8799
+step(1500): train loss 1.3994, val loss 7.8500
+step(1800): train loss 1.3902, val loss 7.8606
+step(2100): train loss 1.4002, val loss 7.8513
+step(2400): train loss 1.3809, val loss 7.8428
+step(2700): train loss 1.4017, val loss 7.8898
 '''
 
 from pyexpat import model
@@ -26,6 +26,7 @@ eval_interval = 300
 learning_rate = 1e-2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
+n_embd = 32
 
 # ======== 固定随机种子，保证复现性 ========
 torch.manual_seed(9527)
@@ -78,12 +79,18 @@ def estimate_loss():
 
 # ======== 简易版 bigram 模型 ========
 class BigramLanguageModel(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self):
         super().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
-        logits = self.token_embedding_table(idx) # (B, T, C)
+        B, T = idx.shape
+        tok_embd = self.token_embedding_table(idx) # (B, T, embedding_c)
+        pos_embd = self.position_embedding_table(torch.arange(T, device=device)) # (T, embedding_c)
+        x = tok_embd + pos_embd # (B, T, embedding_c)
+        logits = self.lm_head(x) # # (B, T, vocab_size)
         if targets is None:
             loss = None
         else:
@@ -103,7 +110,7 @@ class BigramLanguageModel(nn.Module):
         return idx
 
 
-model = BigramLanguageModel(vocab_size)
+model = BigramLanguageModel()
 m = model.to(device)
 
 
