@@ -1,19 +1,18 @@
 '''
-/bigram.py
-step(0): train loss 6.8029, val loss 6.8265
-step(300): train loss 3.8293, val loss 5.8151
-step(600): train loss 2.2778, val loss 5.5810
-step(900): train loss 1.7072, val loss 5.7449
-step(1200): train loss 1.5092, val loss 5.9742
-step(1500): train loss 1.4294, val loss 6.1400
-step(1800): train loss 1.3803, val loss 6.3173
-step(2100): train loss 1.3697, val loss 6.3679
-step(2400): train loss 1.3614, val loss 6.4842
-step(2700): train loss 1.3542, val loss 6.5674
+/bigram_v3_with_single-sa.py
+step(0): train loss 6.3034, val loss 6.3264
+step(500): train loss 3.1879, val loss 6.1680
+step(1000): train loss 1.7551, val loss 7.9221
+step(1500): train loss 1.3692, val loss 9.1620
+step(2000): train loss 1.1930, val loss 10.1094
+step(2500): train loss 1.0946, val loss 10.6318
+step(3000): train loss 1.0299, val loss 11.1991
+step(3500): train loss 0.9583, val loss 11.5353
+step(4000): train loss 0.9111, val loss 11.9693
+step(4500): train loss 0.8602, val loss 12.2770
 '''
 
 from pyexpat import model
-from turtle import forward
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -21,11 +20,12 @@ from torch.nn import functional as F
 
 batch_size = 32
 block_size = 8
-max_iters = 3000
-eval_interval = 300
-learning_rate = 1e-2
+max_iters = 5000
+eval_interval = 500
+learning_rate = 1e-3
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
+n_embd = 32
 
 # ======== 固定随机种子，保证复现性 ========
 torch.manual_seed(9527)
@@ -76,14 +76,44 @@ def estimate_loss():
     return out
 
 
+class Head(nn.Module):
+    ''' Single head of self-attention '''
+
+    def __init__(self, head_size):
+        super().__init__()
+        self.query = nn.Linear(n_embd, head_size, bias=False)
+        self.key = nn.Linear(n_embd, head_size, bias=False)
+        self.value = nn.Linear(n_embd, head_size, bias=False)
+        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+
+    def forward(self, x):
+        B, T, C = x.shape
+        q = self.query(x)
+        k = self.key(x)
+        wei = q @ k.transpose(-2, -1) * C**-0.5
+        wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf'))
+        wei = F.softmax(wei, dim=-1)
+        v = self.value(x)
+        out = wei @ v
+        return out
+
+
 # ======== 简易版 bigram 模型 ========
 class BigramLanguageModel(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self):
         super().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        self.position_embedding_table = nn.Embedding(block_size, n_embd)
+        self.sa_head = Head(n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
-        logits = self.token_embedding_table(idx) # (B, T, C)
+        B, T = idx.shape
+        tok_embd = self.token_embedding_table(idx) # (B, T, embedding_c)
+        pos_embd = self.position_embedding_table(torch.arange(T, device=device)) # (T, embedding_c)
+        x = tok_embd + pos_embd # (B, T, embedding_c)
+        x = self.sa_head(x) # apply one head of self-attention, (B, T, C)
+        logits = self.lm_head(x) # # (B, T, vocab_size)
         if targets is None:
             loss = None
         else:
@@ -95,7 +125,9 @@ class BigramLanguageModel(nn.Module):
 
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):
-            logits, loss = self(idx)
+            # crop idx to the last block_size tokens
+            idx_cond = idx[:, -block_size:]
+            logits, loss = self(idx_cond)
             logits = logits[:, -1, :] # becomes (B, C) 提取最后一个时间步的预测结果，核心是适配 Bigram 模型 “只依赖最后一个 Token 预测下一个 Token” 的核心逻辑
             probs = F.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
@@ -103,7 +135,7 @@ class BigramLanguageModel(nn.Module):
         return idx
 
 
-model = BigramLanguageModel(vocab_size)
+model = BigramLanguageModel()
 m = model.to(device)
 
 
