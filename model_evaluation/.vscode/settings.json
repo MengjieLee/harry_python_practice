@@ -2,5 +2,6 @@
     "python.defaultInterpreterPath": "/usr/bin/python3",
     "python.analysis.extraPaths": [
         "/sgl-workspace/sglang/python"
-    ]
+    ],
+    "notebook.output.wordWrap": true
 }
