@@ -1,0 +1,10 @@
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "What is the capital of France?"}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Explain the concept of gradient descent in machine learning in 3 sentences."}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Write a Python function to check if a number is prime."}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "What are the main differences between TCP and UDP protocols?"}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Summarize the key ideas of transformer architecture."}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello!"}, {"role": "assistant", "content": "Hello! How can I help you today?"}, {"role": "user", "content": "Can you explain what speculative decoding is in LLM inference?"}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "What is EAGLE algorithm?"}, {"role": "assistant", "content": "EAGLE is a speculative decoding method that uses a lightweight draft model to predict multiple tokens ahead, which are then verified by the target model in parallel."}, {"role": "user", "content": "How does it compare to standard autoregressive decoding in terms of speed?"}]}
+{"messages": [{"role": "user", "content": "Translate the following to Chinese: The quick brown fox jumps over the lazy dog."}]}
+{"messages": [{"role": "system", "content": "You are a coding assistant."}, {"role": "user", "content": "Write a binary search implementation in Python with type hints."}]}
+{"messages": [{"role": "system", "content": "You are a math tutor."}, {"role": "user", "content": "Solve: What is the integral of x^2 from 0 to 3?"}]}
